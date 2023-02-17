@@ -1,29 +1,37 @@
 import React, { useState, useEffect } from 'react';
 
 function TodoList() {
-  const [todos, setTodos] = useState(() => {
-    const savedTodos = JSON.parse(localStorage.getItem('todos'));
-    if (savedTodos) {
-      return savedTodos;
-    }
-    return []
-  });
+  const [todos, setTodos] = useState(
+    null
+  );
+
   const [newTodo, setNewTodo] = useState('');
 
   // Gère la synchro du localstorage
   useEffect(() => {
-    console.log(JSON.stringify(todos))
-    localStorage.setItem('todos', JSON.stringify(todos));
+    if (todos != null) {
+      console.log(JSON.stringify(todos))
+      localStorage.setItem('todos', JSON.stringify(todos));
+    }
   }, [todos]);
 
   //Gère du fetch des todos initiales
   useEffect(() => {
     const fetchData = async () => {
-    const response = await fetch('https://jsonplaceholder.typicode.com/users/1/todos')
-    const data = await response.json()
-    setTodos(data)
-    }
-    fetchData()
+      const response = await fetch('https://jsonplaceholder.typicode.com/users/1/todos')
+      const data = await response.json()
+      setTodos(data)
+    }    
+
+    const checkStorage = () => {
+      const storedData = localStorage.getItem('todos');
+      if (!storedData) {
+        fetchData()
+      } else {
+        setTodos(JSON.parse(storedData))
+      }
+    };
+    checkStorage()
   }, []);
 
   const handleNewTodoChange = (event) => {
@@ -61,6 +69,9 @@ function TodoList() {
     setTodos(updatedTodos);
   };
 
+  if (todos === null) {
+    return ('loading')
+  }
   return (
     <div>
       <h1>Todo List</h1>
