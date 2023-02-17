@@ -1,25 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
 
-function App() {
+function TodoList() {
+  const [todos, setTodos] = useState([]);
+  const [newTodo, setNewTodo] = useState('');
+
+  useEffect(() => {
+    const savedTodos = JSON.parse(localStorage.getItem('todos'));
+    if (savedTodos) {
+      setTodos(savedTodos);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  }, [todos]);
+
+  const handleNewTodoChange = (event) => {
+    setNewTodo(event.target.value);
+  };
+
+  const handleNewTodoSubmit = (event) => {
+    event.preventDefault();
+    if (newTodo.trim() !== '') {
+      setTodos([...todos, { id: Date.now(), text: newTodo.trim() }]);
+      setNewTodo('');
+    }
+  };
+
+  const handleTodoDelete = (todo) => {
+    setTodos(todos.filter((t) => t.id !== todo.id));
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Todo List</h1>
+      <form onSubmit={handleNewTodoSubmit}>
+        <input type="text" value={newTodo} onChange={handleNewTodoChange} />
+        <button type="submit">Add Todo</button>
+      </form>
+      <ul>
+        {todos.map((todo) => (
+          <li key={todo.id}>
+            {todo.text}
+            <button onClick={() => handleTodoDelete(todo)}>Delete</button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-export default App;
+export default TodoList;
