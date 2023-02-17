@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 function TodoList() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(() => {
+    const savedTodos = JSON.parse(localStorage.getItem('todos'));
+    if (savedTodos) {
+      return savedTodos;
+    }
+    return []
+  });
   const [newTodo, setNewTodo] = useState('');
 
   useEffect(() => {
-    const savedTodos = JSON.parse(localStorage.getItem('todos'));
-    if (savedTodos) {
-      setTodos(savedTodos);
-    }
-  }, []);
-
-  useEffect(() => {
+    console.log(JSON.stringify(todos))
     localStorage.setItem('todos', JSON.stringify(todos));
   }, [todos]);
 
@@ -22,13 +22,32 @@ function TodoList() {
   const handleNewTodoSubmit = (event) => {
     event.preventDefault();
     if (newTodo.trim() !== '') {
-      setTodos([...todos, { id: Date.now(), text: newTodo.trim() }]);
+      setTodos([...todos, { id: Date.now(), text: newTodo.trim(), isCompleted:false }]);
       setNewTodo('');
     }
   };
 
   const handleTodoDelete = (todo) => {
-    setTodos(todos.filter((t) => t.id !== todo.id));
+    const tododeleted = todos.filter((t) => t.id !== todo.id);
+    setTodos(tododeleted);
+  };
+
+
+  const handleTodoEdit = (todo, newText) => {
+    const newTextEdited = [...todos];
+    const todoIndex = newTextEdited.findIndex((t) => t.id === todo.id);
+    newTextEdited[todoIndex].text = newText;
+    setTodos(newTextEdited);
+  };
+
+  const handleTodoComplete = todo => {
+    const updatedTodos = todos.map((t) => {
+      if (t.id === todo.id) {
+        return { ...t, isCompleted: !t.isCompleted };
+      }
+      return t;
+    });
+    setTodos(updatedTodos);
   };
 
   return (
@@ -41,7 +60,10 @@ function TodoList() {
       <ul>
         {todos.map((todo) => (
           <li key={todo.id}>
-            {todo.text}
+            <input type="text" value={todo.text} onChange={(event) => handleTodoEdit(todo, event.target.value)} />
+            
+            <input type="checkbox" checked={todo.isCompleted} onChange={(event) => handleTodoComplete(todo)}
+        />
             <button onClick={() => handleTodoDelete(todo)}>Delete</button>
           </li>
         ))}
